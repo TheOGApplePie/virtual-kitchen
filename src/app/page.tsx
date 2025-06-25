@@ -1,103 +1,128 @@
-import Image from "next/image";
-
+"use client";
+import { select } from "three/tsl";
+import AddInventory from "./add-inventory";
+import HomePage from "./components/home";
+import InventoryList from "./inventory-list";
+import React, { useEffect, useState } from "react";
+export interface Item {
+  id?: number;
+  category: string;
+  location: string;
+  name: string;
+  grams: number;
+  count: number;
+  unit: string;
+}
+export interface InventoryGroup {
+  category: string;
+  items: Item[];
+}
 export default function Home() {
+  const defaultSelectedItem: Item = {
+    category: "",
+    name: "",
+    location: "",
+    grams: 0,
+    count: 0,
+    unit: "",
+  };
+  const emptyInventory: Item[] = [];
+  const [openAddInventoryModal, setOpenAddInventoryModal] = useState(false);
+  const [selectedInventoryItem, setSelectedInventoryItem] =
+    useState(defaultSelectedItem);
+  const [selectedLocation, setSelectedLocation] = useState("");
+  const [inventoryList, setInventoryList] = useState(emptyInventory);
+  const [filteredInventoryList, setFilteredInventoryList] =
+    useState(emptyInventory);
+  const fetchInventory = async () => {
+    try {
+      const res = await fetch("/api/inventory");
+      const data = await res.json();
+      setInventoryList(data);
+    } catch (error) {
+      console.error("Error fetching inventory: ", error);
+    }
+  };
+  useEffect(() => {
+    fetchInventory();
+  }, []);
+  const handleSelectInventoryItem = async (item: Item) => {
+    setSelectedInventoryItem(item);
+    setOpenAddInventoryModal(true);
+  };
+  const handleDataFromAddInventory = async (data: {
+    id?: number;
+    category: string;
+    name: string;
+    quantityInGrams: number;
+    count: number;
+    location: string;
+    units: string;
+  }) => {
+    const newItem = {
+      id: data.id,
+      category: data.category,
+      name: data.name,
+      grams: data.quantityInGrams,
+      count: data.count,
+      location: data.location,
+      unit: data.units,
+    };
+    await fetch("/api/inventory", {
+      method: newItem.id ? "PUT" : "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(newItem),
+    })
+      .then(() => {
+        setSelectedInventoryItem(defaultSelectedItem);
+        fetchInventory();
+      })
+      .catch((error) => {
+        console.error("Error adding data: ", error);
+      });
+  };
+  const showInventory = (name: string) => {
+    setSelectedLocation(name);
+    setFilteredInventoryList(
+      inventoryList.filter((inventory) => inventory.location === name),
+    );
+  };
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div style={{ width: "90dvw", height: "90dvh" }}>
+      <HomePage showInventory={showInventory} />
+      {selectedLocation ? (
+        <div
+          style={{
+            position: "absolute",
+            top: "20px",
+            right: "20px",
+            background: "rgba(50,50,50,0.9)",
+            padding: "10px",
+            borderRadius: "8px",
+            zIndex: 10,
+          }}
+        >
+          <InventoryList
+            inventoryList={filteredInventoryList}
+            openAddInventoryModal={() => setOpenAddInventoryModal(true)}
+            selectInventoryItem={handleSelectInventoryItem}
+          />
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      ) : (
+        <></>
+      )}
+      <AddInventory
+        location={selectedLocation}
+        sendDataToHome={handleDataFromAddInventory}
+        closeAddInventoryModal={() => {
+          setOpenAddInventoryModal(false);
+          setSelectedInventoryItem(defaultSelectedItem);
+        }}
+        openAddInventoryModal={openAddInventoryModal}
+        selectedInventoryItem={selectedInventoryItem}
+      />
     </div>
   );
 }
