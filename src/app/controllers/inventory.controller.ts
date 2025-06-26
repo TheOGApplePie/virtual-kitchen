@@ -1,5 +1,6 @@
 import {
   createInventory,
+  deleteInventory,
   findAllItems,
   updateInventory,
 } from "../repositories/inventory.repository";
@@ -38,6 +39,14 @@ class Inventory {
   async getAllInventoryItems() {
     try {
       return await findAllItems();
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async deleteInventoryItem(id: number) {
+    try {
+      return await deleteInventory(id);
     } catch (error) {
       throw error;
     }
