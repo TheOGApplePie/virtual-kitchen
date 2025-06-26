@@ -1,41 +1,46 @@
+"use client";
 import React, { useState } from "react";
-import { Item } from "./page";
+import { Item } from "../page";
+import "./home/home.css";
 interface AddInventoryProps {
   openAddInventoryModal: boolean;
   location: string;
   selectedInventoryItem: Item;
-  closeAddInventoryModal: () => void;
-  sendDataToHome: (formData: {
-    category: string;
-    name: string;
-    quantityInGrams: number;
-    location: string;
-    count: number;
-    units: string;
-  }) => void;
+  closeAddInventoryModalAction: (fetchData?: boolean) => void;
 }
 export default function AddInventory({
   openAddInventoryModal,
   location,
-  closeAddInventoryModal,
+  closeAddInventoryModalAction,
   selectedInventoryItem,
-  sendDataToHome,
 }: AddInventoryProps) {
   if (!openAddInventoryModal) return null;
   const [formData, setFormData] = useState({
     id: selectedInventoryItem.id ?? undefined,
     category: selectedInventoryItem.category ?? "",
     name: selectedInventoryItem.name ?? "",
-    quantityInGrams: selectedInventoryItem.grams ?? 0.0,
+    grams: selectedInventoryItem.grams ?? 0.0,
     count: selectedInventoryItem.count ?? 0,
-    units: selectedInventoryItem.unit ?? "",
-    location: selectedInventoryItem.location ?? location,
+    unit: selectedInventoryItem.unit ?? "",
+    location: selectedInventoryItem.location
+      ? selectedInventoryItem.location
+      : location,
   });
 
-  const handleFormSubmission = (event: React.FormEvent) => {
+  const handleFormSubmission = async (event: React.FormEvent) => {
     event.preventDefault();
-    sendDataToHome(formData);
-    closeAddInventoryModal();
+    // sendDataToHome(formData);
+    await fetch("/api/inventory", {
+      method: formData.id ? "PUT" : "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    })
+      .then(() => {
+        closeAddInventoryModalAction(true);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   };
 
   const handleChange = (event: any) => {
@@ -51,8 +56,10 @@ export default function AddInventory({
         <div className="flex justify-between items-center border-b pb-2 mb-4">
           <h1 className="text-xl font-semibold">Add Inventory</h1>
           <button
-            onClick={closeAddInventoryModal}
-            className="text-red-600 text-xl font-bold"
+            onClick={() => {
+              closeAddInventoryModalAction();
+            }}
+            className="text-red-600 text-xl font-bold clickable"
           >
             ×
           </button>
@@ -76,8 +83,8 @@ export default function AddInventory({
           />
           <input
             type="number"
-            id="quantityInGrams"
-            value={formData.quantityInGrams}
+            id="grams"
+            value={formData.grams}
             onChange={handleChange}
             placeholder="Quantity in grams"
             className="border px-3 py-2 rounded"
@@ -92,8 +99,8 @@ export default function AddInventory({
           />
           <input
             type="text"
-            id="units"
-            value={formData.units}
+            id="unit"
+            value={formData.unit}
             onChange={handleChange}
             placeholder="Units"
             className="border px-3 py-2 rounded"
@@ -107,7 +114,7 @@ export default function AddInventory({
           />
           <button
             type="submit"
-            className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
+            className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 clickable"
           >
             Submit
           </button>

@@ -1,27 +1,32 @@
 import prisma from "../lib/prisma";
+import { Item } from "../page";
 
 export const findAllItems = async () => {
-  return await prisma.inventoryItem.findMany();
-};
-
-export const createInventory = async (newItem) => {
-  return await prisma.inventoryItem.create({
-    data: {
-      ...newItem,
-      count: parseInt(newItem.count, 10),
-      grams: parseFloat(newItem.grams),
+  return await prisma.inventoryItem.findMany({
+    orderBy: {
+      name: "asc",
     },
   });
 };
-export const updateInventory = async (newItem) => {
+
+export const createInventory = async (newItem: Item) => {
+  return await prisma.inventoryItem.create({
+    data: {
+      ...newItem,
+      count: parseInt(newItem.count.toString()),
+      grams: parseFloat(newItem.grams.toString()),
+    },
+  });
+};
+export const updateInventory = async (newItem: Item) => {
   return await prisma.inventoryItem.update({
     where: {
       id: newItem.id,
     },
     data: {
       ...newItem,
-      count: parseInt(newItem.count, 10),
-      grams: parseFloat(newItem.grams),
+      count: parseInt(newItem.count.toString()),
+      grams: parseFloat(newItem.grams.toString()),
     },
   });
 };

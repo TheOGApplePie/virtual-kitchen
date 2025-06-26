@@ -22,7 +22,10 @@ const objectLocations = [
     lookAt: new THREE.Vector3(1, 1.5, -1.5),
   },
 ];
-export default function Kitchen({ moveTo }) {
+type Props = {
+  moveTo: (newVector: [THREE.Vector3, THREE.Vector3, string]) => void;
+};
+export default function Kitchen({ moveTo }: Props) {
   const [model, setModel] = useState<THREE.Group | null>(null);
 
   function findCoordinatesAndMoveToIt(name: string) {
@@ -35,8 +38,8 @@ export default function Kitchen({ moveTo }) {
   }
   useEffect(() => {
     const mtlLoader = new MTLLoader();
-    mtlLoader.setResourcePath("/models/"); // path for texture images if needed
-    mtlLoader.setPath("/models/"); // path for .mtl file
+    mtlLoader.setResourcePath("/models/");
+    mtlLoader.setPath("/models/");
 
     mtlLoader.load("kitchen.mtl", (materials) => {
       materials.preload();
@@ -53,7 +56,7 @@ export default function Kitchen({ moveTo }) {
     if (!model) return;
     model.traverse((child) => {
       if (child instanceof THREE.Mesh) {
-        child.userData = { clickable: true }; // optional tagging
+        child.userData = { clickable: true };
       }
     });
   }, [model]);
@@ -67,7 +70,7 @@ export default function Kitchen({ moveTo }) {
           findCoordinatesAndMoveToIt(clickedMesh.name);
         }
       }}
-      onPointerOver={(e: Event) => {
+      onPointerOver={() => {
         document.body.style.cursor = "pointer";
       }}
       onPointerOut={() => {

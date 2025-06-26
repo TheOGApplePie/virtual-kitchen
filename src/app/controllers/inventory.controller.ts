@@ -1,4 +1,9 @@
-import { inventoryService } from "../services/inventory.service";
+import {
+  createInventory,
+  findAllItems,
+  updateInventory,
+} from "../repositories/inventory.repository";
+
 class Inventory {
   async createInventoryItem(newItem: {
     category: string;
@@ -9,7 +14,7 @@ class Inventory {
     location: string;
   }) {
     try {
-      return await inventoryService.createNewInventory(newItem);
+      return await createInventory(newItem);
     } catch (error) {
       throw error;
     }
@@ -24,14 +29,15 @@ class Inventory {
     unit: string;
   }) {
     try {
-      return await inventoryService.updateExistingInventory(newItem);
+      return await updateInventory(newItem);
     } catch (error) {
       throw error;
     }
   }
+
   async getAllInventoryItems() {
     try {
-      return await inventoryService.findAllInventoryItems();
+      return await findAllItems();
     } catch (error) {
       throw error;
     }
