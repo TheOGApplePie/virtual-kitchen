@@ -12,10 +12,9 @@ export interface Item {
 }
 
 export default async function App() {
-  const inventoryList = await findAllItems();
   return (
     <div style={{ width: "90dvw", height: "90dvh" }}>
-      <HomePage inventoryList={inventoryList} />
+      <HomePage />
     </div>
   );
 }

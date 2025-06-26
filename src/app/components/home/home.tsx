@@ -1,17 +1,15 @@
 "use client";
 import { Canvas } from "@react-three/fiber";
 import Kitchen from "../kitchen";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import CameraController from "../perspective-camera";
 import { Vector3 } from "three";
 import "./home.css";
 import { Item } from "@/app/page";
 import InventoryList from "../inventory-list";
 import AddInventory from "../add-inventory";
-interface HomePageProps {
-  inventoryList: Item[];
-}
-const HomePage = ({ inventoryList }: HomePageProps) => {
+
+const HomePage = () => {
   const DEFAULT_POSITION = new Vector3(-5, 5, -5);
   const DEFAULT_LOOK_AT = new Vector3(6, 1, 5);
   const defaultSelectedItem: Item = {
@@ -22,6 +20,15 @@ const HomePage = ({ inventoryList }: HomePageProps) => {
     count: 0,
     unit: "",
   };
+  const defaultInventoryList: Item[] = [];
+  const [inventoryList, setInventoryList] = useState(defaultInventoryList);
+  useEffect(() => {
+    fetch("/api/inventory").then((response) => {
+      response.json().then((updatedItems: Item[]) => {
+        setInventoryList(updatedItems);
+      });
+    });
+  }, []);
   const [position, setPosition] = useState(DEFAULT_POSITION);
   const [lookAt, setLookAt] = useState(DEFAULT_LOOK_AT);
   const [showHome, setShowHome] = useState(false);
@@ -30,7 +37,7 @@ const HomePage = ({ inventoryList }: HomePageProps) => {
     useState(defaultSelectedItem);
   const [selectedLocation, setSelectedLocation] = useState("");
   const [filteredInventoryList, setFilteredInventoryList] =
-    useState(inventoryList);
+    useState(defaultInventoryList);
 
   function handleMoveTo(newVector: [Vector3, Vector3, string]) {
     setPosition(newVector[0]);
